@@ -14,7 +14,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const { url, method, headers, body } = request;
 
-    // wrap in delayed observable to simulate server api call
+    // wrap in delayed observable to simulate server API call
     return of(null)
       .pipe(mergeMap(handleRoute))
       .pipe(materialize()) // call materialize and dematerialize to ensure delay even if an error is thrown (https://github.com/Reactive-Extensions/RxJS/issues/648)
@@ -33,8 +33,6 @@ export class FakeBackendInterceptor implements HttpInterceptor {
       }
     }
 
-    // route functions
-
     function authenticate() {
       const { username, password } = body;
       const user = users.find(x => x.username === username && x.password === password);
@@ -45,7 +43,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         firstName: user.firstName,
         lastName: user.lastName,
         token: 'fake-jwt-token'
-      })
+      });
     }
 
     function getUsers() {
@@ -53,10 +51,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
       return ok(users);
     }
 
-    // helper functions
-
     function ok(body?) {
-      return of(new HttpResponse({ status: 200, body }))
+      return of(new HttpResponse({ status: 200, body }));
     }
 
     function error(message) {
@@ -64,7 +60,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
     }
 
     function unauthorized() {
-      return throwError({ status: 401, error: { message: 'Unauthorised' } });
+      return throwError({ status: 401, error: { message: 'Unauthorized' } });
     }
 
     function isLoggedIn() {
@@ -73,9 +69,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
   }
 }
 
+// use fake backend in place of Http service for serverless development
 export let fakeBackendProvider = {
-  // use fake backend in place of Http service for backend-less development
   provide: HTTP_INTERCEPTORS,
   useClass: FakeBackendInterceptor,
   multi: true
-};
+}
