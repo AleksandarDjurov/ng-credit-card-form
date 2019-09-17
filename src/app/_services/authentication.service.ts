@@ -21,10 +21,10 @@ export class AuthenticationService {
     return this.currentUserSubject.value;
   }
 
-  login(username: string, password: string) {
-    return this.http.post<any>(`/users/authenticate`, { username, password })
+  login(email: string, password: string) {
+    return this.http.post<any>(`/users/authenticate`, { email, password })
       .pipe(map(user => {
-        // store user details and jwt token in local storage
+        // store user details and JWT token in local storage
         localStorage.setItem('currentUser', JSON.stringify(user));
         this.currentUserSubject.next(user);
         return user;
