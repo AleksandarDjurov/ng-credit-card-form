@@ -1,9 +1,12 @@
+import { Moment } from 'moment';
+
 export class User {
   id: number;
   email: string;
   password: string;
-  username: string;
-  firstName: string;
-  lastName: string;
+  nameOnCc: string;
+  ccNumber: string;
+  ccExpiration: Moment;
+  ccSecurityCode: string;
   token?: string;
 }

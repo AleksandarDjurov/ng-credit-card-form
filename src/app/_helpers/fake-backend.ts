@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpRequest, HttpResponse, HttpHandler, HttpEvent, HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, mergeMap, materialize, dematerialize } from 'rxjs/operators';
+import * as moment from 'moment';
 
 import { User } from '../_models';
 
@@ -9,10 +10,11 @@ const users: User[] = [
   {
     id: 1,
     email: 'test@mail.com',
-    password: 'test',
-    username: 'testuser',
-    firstName: 'Test',
-    lastName: 'User'
+    password: '',
+    nameOnCc: '',
+    ccNumber: '',
+    ccExpiration: null,
+    ccSecurityCode: ''
   }
 ];
 
@@ -42,14 +44,18 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
     function authenticate() {
       const { email, password } = body;
+      // check password later
+      // https://haveibeenpwned.com/API/v3#PwnedPasswords
       const user = users.find(x => x.email === email && x.password === password);
+
       if (!user) return error('Email or password is incorrect');
       return ok({
         id: user.id || 1,
         email: user.email,
-        username: user.username || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
+        nameOnCc: user.nameOnCc || 'testuser',
+        ccNumber: user.ccNumber || '12345678',
+        ccExpiration: user.ccExpiration || moment('2019-12-31'),
+        ccSecurityCode: user.ccSecurityCode || '0000',
         token: 'fake-jwt-token'
       });
     }

@@ -10,6 +10,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
   submitted = false;
+  isShowAlert = true;
   returnUrl: string;
   error = '';
 
@@ -27,16 +28,23 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      nameOnCc: ['', Validators.required],
+      ccNumber: ['', Validators.required],
+      ccExpiration: [null, Validators.required],
+      ccSecurityCode: ['', [Validators.required, Validators.minLength(4)]]
     });
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
-  // convenience getter for easy access to form fields
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
+  // getter - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
   get f() {
     return this.loginForm.controls;
+  }
+
+  closeAlert() {
+    this.isShowAlert = false;
   }
 
   onSubmit() {
