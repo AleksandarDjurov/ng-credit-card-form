@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { first } from 'rxjs/operators';
+import * as CryptoJS from 'crypto-js';
 
-import { AuthenticationService } from '../_services';
+import { AuthenticationService, PwdcheckService } from '../_services';
 
 @Component({ templateUrl: 'login.component.html' })
 export class LoginComponent implements OnInit {
@@ -14,11 +16,15 @@ export class LoginComponent implements OnInit {
   returnUrl: string;
   error = '';
 
+  PWNED_PWD_URL = 'https://api.pwnedpasswords.com/range';
+
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private pwdcheckService: PwdcheckService,
+    private http: HttpClient
   ) {
     if (this.authenticationService.currentUserValue) {
       this.router.navigate(['/']);
@@ -54,16 +60,49 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
-    this.authenticationService.login(this.f.email.value, this.f.password.value)
-      .pipe(first())
-      .subscribe(
-        data => {
-          this.router.navigate([this.returnUrl]);
-        },
-        error => {
-          this.error = error;
-          this.loading = false;
-        }
-      );
+
+    // https://haveibeenpwned.com/API/v3#PwnedPasswords
+    const hash = CryptoJS.SHA1(this.f.password.value).toString(CryptoJS.enc.Hex).toUpperCase();
+    const hashPrefix = hash.substring(0, 5);
+    const hashSuffix = hash.substring(5, 40);
+    const path = this.PWNED_PWD_URL + '/' + hashPrefix;
+    this.http.get(path).toPromise().then(
+      data => {
+        console.log(data);
+      },
+      err => {
+        console.log(err);
+      }
+    )
+
+    // this.pwdcheckService.checkPassword(path).then(
+    //   data => {
+    //     console.log(data);
+    //     this.loading = false;
+    //   },
+    //   err => {
+    //     console.log(err);
+    //     this.error = err;
+    //     this.loading = false;
+    //   }
+    // );
+
+    // await this.http.get<any>(this.PWNED_PWD_URL + '/' + hashPrefix).toPromise()
+    //   .then(data => {
+    //     console.log(data);
+
+    //     this.authenticationService.login(this.f.email.value, this.f.password.value)
+    //       .pipe(first())
+    //       .subscribe(
+    //         user => {
+    //           console.log(user);
+    //           this.router.navigate([this.returnUrl]);
+    //         },
+    //         error => {
+    //           this.error = error;
+    //           this.loading = false;
+    //         }
+    //       );
+    //   });
   }
 }

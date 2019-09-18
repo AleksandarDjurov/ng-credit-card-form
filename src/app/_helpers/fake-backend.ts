@@ -20,15 +20,28 @@ const users: User[] = [
 
 @Injectable()
 export class FakeBackendInterceptor implements HttpInterceptor {
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    request: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     const { url, method, headers, body } = request;
 
-    // wrap in delayed observable to simulate server API call
-    return of(null)
-      .pipe(mergeMap(handleRoute))
-      .pipe(materialize()) // call materialize and dematerialize to ensure delay even if an error is thrown (https://github.com/Reactive-Extensions/RxJS/issues/648)
-      .pipe(delay(500))
-      .pipe(dematerialize());
+    if (
+      url.includes('api.pwnedpasswords.com/range') &&
+      method === 'GET'
+    ) {
+      // real API call
+      return next.handle(request);
+    } else {
+      // simulate server API call by wrapping in delayed observable
+      return of(null)
+        .pipe(mergeMap(handleRoute))
+        // call materialize and dematerialize to ensure delay even if an error is thrown
+        // https://github.com/Reactive-Extensions/RxJS/issues/648
+        .pipe(materialize())
+        .pipe(delay(500))
+        .pipe(dematerialize());
+    }
 
     function handleRoute() {
       switch (true) {
@@ -37,18 +50,16 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         case url.endsWith('/users') && method === 'GET':
           return getUsers();
         default:
-          // pass through any requests not handled above
           return next.handle(request);
       }
     }
 
     function authenticate() {
       const { email, password } = body;
-      // check password later
-      // https://haveibeenpwned.com/API/v3#PwnedPasswords
-      const user = users.find(x => x.email === email && x.password === password);
 
-      if (!user) return error('Email or password is incorrect');
+      const user = users.find(x => x.email === email && password);
+      if (!user) return error('Email is incorrect!');
+
       return ok({
         id: user.id || 1,
         email: user.email,
