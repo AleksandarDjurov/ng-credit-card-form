@@ -5,21 +5,38 @@ import { delay, mergeMap, materialize, dematerialize } from 'rxjs/operators';
 
 import { User } from '../_models';
 
-const users: User[] = [
-  { id: 1, username: 'test', password: 'test', firstName: 'Test', lastName: 'User' }
+let users: User[] = [
+  {
+    id: 1,
+    email: 'test@mail.com',
+    password: '',
+    nameOnCc: '',
+    ccNumber: '',
+    ccExpiration: '',
+    ccSecurityCode: ''
+  }
 ];
 
 @Injectable()
 export class FakeBackendInterceptor implements HttpInterceptor {
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    request: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     const { url, method, headers, body } = request;
 
-    // wrap in delayed observable to simulate server api call
-    return of(null)
-      .pipe(mergeMap(handleRoute))
-      .pipe(materialize()) // call materialize and dematerialize to ensure delay even if an error is thrown (https://github.com/Reactive-Extensions/RxJS/issues/648)
-      .pipe(delay(500))
-      .pipe(dematerialize());
+    if (url.includes('api.pwnedpasswords.com/range') && method === 'GET') {
+      // REMOTE API call
+      return next.handle(request);
+    } else {
+      // SIMULATE server API call by wrapping in delayed observable
+      return of(null)
+        .pipe(mergeMap(handleRoute))
+        .pipe(materialize())
+        .pipe(delay(500))
+        // https://github.com/Reactive-Extensions/RxJS/issues/648#issuecomment-88669470
+        .pipe(dematerialize());
+    }
 
     function handleRoute() {
       switch (true) {
@@ -28,35 +45,44 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         case url.endsWith('/users') && method === 'GET':
           return getUsers();
         default:
-          // pass through any requests not handled above
           return next.handle(request);
       }
     }
 
-    // route functions
-
     function authenticate() {
-      const { username, password } = body;
-      const user = users.find(x => x.username === username && x.password === password);
-      if (!user) return error('Username or password is incorrect');
-      return ok({
-        id: user.id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
+      const email = body.email;
+      const password = body.password;
+
+      const user = users.find(x => x.email === email && password);
+      if (!user) return error('Email is incorrect!');
+
+      const loginUser = Object.assign({}, user, body, {
         token: 'fake-jwt-token'
-      })
+      });
+
+      return ok(loginUser);
     }
 
     function getUsers() {
       if (!isLoggedIn()) return unauthorized();
+      users = fn_compose_users();
       return ok(users);
     }
 
-    // helper functions
+    function fn_compose_users(): User[] {
+      try {
+        const authUser = localStorage.getItem('currentUser') && JSON.parse(localStorage.getItem('currentUser')) || {};
+        const result = [];
+        result.push(authUser);
+        return result;
+      } catch (e) {
+        console.log(e);
+        return users;
+      }
+    }
 
     function ok(body?) {
-      return of(new HttpResponse({ status: 200, body }))
+      return of(new HttpResponse({ status: 200, body }));
     }
 
     function error(message) {
@@ -64,7 +90,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
     }
 
     function unauthorized() {
-      return throwError({ status: 401, error: { message: 'Unauthorised' } });
+      return throwError({ status: 401, error: { message: 'Unauthorized' } });
     }
 
     function isLoggedIn() {
@@ -73,9 +99,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
   }
 }
 
+// use fake backend in place of Http service for serverless development
 export let fakeBackendProvider = {
-  // use fake backend in place of Http service for backend-less development
   provide: HTTP_INTERCEPTORS,
   useClass: FakeBackendInterceptor,
   multi: true
-};
+}

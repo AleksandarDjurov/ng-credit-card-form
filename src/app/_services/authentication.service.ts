@@ -21,10 +21,10 @@ export class AuthenticationService {
     return this.currentUserSubject.value;
   }
 
-  login(username: string, password: string) {
-    return this.http.post<any>(`/users/authenticate`, { username, password })
+  login(credentials) {
+    return this.http.post<any>(`/users/authenticate`, credentials)
       .pipe(map(user => {
-        // store user details and jwt token in local storage to keep user logged in between page refreshes
+        // store user details and JWT token in local storage
         localStorage.setItem('currentUser', JSON.stringify(user));
         this.currentUserSubject.next(user);
         return user;
@@ -32,7 +32,7 @@ export class AuthenticationService {
   }
 
   logout() {
-    // remove user from local storage to log user out
+    // remove user from local storage
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
   }

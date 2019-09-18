@@ -2,3 +2,16 @@
 a {
   cursor: pointer
 }
+
+/*
+** mdb-navbar
+*/
+.top-nav-collapse {
+  background-color: #68467c;
+}
+
+@media only screen and (max-width: 768px) {
+  .navbar {
+    background-color: #68467c;
+  }
+}

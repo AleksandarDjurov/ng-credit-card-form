@@ -1,28 +1,163 @@
-<div class="col-md-6 offset-md-3 mt-5">
-  <div class="card">
-    <h4 class="card-header">Angular 8 JWT Login Example</h4>
-    <div class="card-body">
+<section class="form-simple col-md-6 offset-md-3 mt-5 mb-5">
+  <div *ngIf="isShowAlert" class="alert alert-info alert-dismissible show" role="alert">
+    <button type="button" class="close" aria-label="Close" (click)="closeAlert()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    Email: test@mail.com
+  </div>
+
+  <mdb-card>
+    <div class="header pt-3 grey lighten-2">
+      <div class="row d-flex justify-content-start">
+        <h3 class="deep-grey-text mt-3 mb-4 pb-1 mx-5">
+          Login with Credit Card Info
+        </h3>
+      </div>
+    </div>
+
+    <mdb-card-body class="mx-2 mt-2">
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" formControlName="username" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
-          <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
-            <div *ngIf="f.username.errors.required">Username is required</div>
+          <label for="email">Email</label>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.email.errors }"
+          />
+          <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+            <div *ngIf="f.email.errors.required">
+              Email is required
+            </div>
+            <div *ngIf="f.email.errors.email">
+              Email must be a valid email address
+            </div>
           </div>
         </div>
+        <!--  -->
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
+          <input
+            type="password"
+            formControlName="password"
+            pwnedPasswordValidator
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.password.errors }"
+          />
           <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
-            <div *ngIf="f.password.errors.required">Password is required</div>
+            <div *ngIf="f.password.errors.required">
+              Password is required
+            </div>
+            <div *ngIf="f.password.errors.minlength">
+              Password must be at least 6 characters
+            </div>
           </div>
         </div>
-        <button [disabled]="loading" class="btn btn-primary">
+        <!-- .PwnedPassword alert -->
+        <div
+          *ngIf="!f.password.pending && f.password.errors && f.password.errors.pwnedPasswordOccurrence"
+          class="alert alert-warning mt-3 mb-3"
+          role="alert"
+        >
+          <h4 class="alert-heading">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true">&nbsp;</i>Caution
+          </h4>
+          <p>
+            This password has been seen
+            <span class="invalid-feedback--highlight">
+              {{ f.password.errors.pwnedPasswordOccurrence | number:'1.0-0' }}
+            </span>
+            times before
+          </p>
+          <hr>
+          <p class="mb-0">
+            This password has previously appeared in a data breach and should never be used.
+            If you've ever used it anywhere before, change it!
+          </p>
+        </div>
+        <!--  -->
+        <div class="form-group">
+          <label for="nameOnCc">Name on Credit Card(CC)</label>
+          <input
+            type="text"
+            formControlName="nameOnCc"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.nameOnCc.errors }"
+          />
+          <div *ngIf="submitted && f.nameOnCc.errors" class="invalid-feedback">
+            <div *ngIf="f.nameOnCc.errors.required">
+              Name on CC is required
+            </div>
+          </div>
+        </div>
+        <!--  -->
+        <div class="form-group">
+          <label for="ccNumber">CC Number</label>
+          <input
+            type="text"
+            formControlName="ccNumber"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.ccNumber.errors }"
+          />
+          <div *ngIf="submitted && f.ccNumber.errors" class="invalid-feedback">
+            <div *ngIf="f.ccNumber.errors.required">
+              CC Number is required
+            </div>
+          </div>
+        </div>
+        <!--  -->
+        <div class="form-group">
+          <label for="ccExpiration">CC Expiration</label>
+          <input
+            type="date"
+            formControlName="ccExpiration"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.ccExpiration.errors }"
+          />
+          <div *ngIf="submitted && f.ccExpiration.errors" class="invalid-feedback">
+            <div *ngIf="f.ccExpiration.errors.required">
+              CC Expiration is required
+            </div>
+          </div>
+        </div>
+        <!--  -->
+        <div class="form-group">
+          <label for="ccSecurityCode">CC Security Code</label>
+          <input
+            type="text"
+            formControlName="ccSecurityCode"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.ccSecurityCode.errors }"
+          />
+          <div *ngIf="submitted && f.ccSecurityCode.errors" class="invalid-feedback">
+            <div *ngIf="f.ccSecurityCode.errors.required">
+              CC Security Code is required
+            </div>
+            <div *ngIf="f.ccSecurityCode.errors.minlength">
+              CC Security Code must be at least 4 characters
+            </div>
+          </div>
+        </div>
+        <!--  -->
+        <button
+          [disabled]="loading"
+          mdbBtn
+          color="danger"
+          block="true"
+          class="z-depth-2"
+        >
           <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
-          Login
+          Log in
         </button>
-        <div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{error}}</div>
+        <p class="font-small grey-text d-flex justify-content-center mt-3">
+          Don't have an account?
+          <a href="#" class="dark-grey-text font-weight-bold ml-1"> Sign up</a>
+        </p>
+        <!--  -->
+        <div *ngIf="error" class="alert alert-danger mt-3 mb-0" role="alert">
+          <i class="fa fa-exclamation-triangle" aria-hidden="true">&nbsp;</i>{{ error }}
+        </div>
       </form>
-    </div>
-  </div>
-</div>
+    </mdb-card-body>
+  </mdb-card>
+</section>
