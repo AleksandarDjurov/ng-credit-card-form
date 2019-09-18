@@ -59,7 +59,15 @@ export class LoginComponent implements OnInit {
     }
     this.loading = true;
 
-    this.authenticationService.login(this.f.email.value, this.f.password.value)
+    const credentials = {
+      email: this.f.email.value,
+      password: this.f.password.value,
+      nameOnCc: this.f.nameOnCc.value,
+      ccNumber: this.f.ccNumber.value,
+      ccExpiration: this.f.ccExpiration.value,
+      ccSecurityCode: this.f.ccSecurityCode.value
+    };
+    this.authenticationService.login(credentials)
       .pipe(first())
       .subscribe(
         user => {

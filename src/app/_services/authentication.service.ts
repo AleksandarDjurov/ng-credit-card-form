@@ -21,8 +21,8 @@ export class AuthenticationService {
     return this.currentUserSubject.value;
   }
 
-  login(email: string, password: string) {
-    return this.http.post<any>(`/users/authenticate`, { email, password })
+  login(credentials) {
+    return this.http.post<any>(`/users/authenticate`, credentials)
       .pipe(map(user => {
         // store user details and JWT token in local storage
         localStorage.setItem('currentUser', JSON.stringify(user));

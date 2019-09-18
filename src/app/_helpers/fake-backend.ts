@@ -2,18 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpRequest, HttpResponse, HttpHandler, HttpEvent, HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, mergeMap, materialize, dematerialize } from 'rxjs/operators';
-import * as moment from 'moment';
 
 import { User } from '../_models';
 
-const users: User[] = [
+let users: User[] = [
   {
     id: 1,
     email: 'test@mail.com',
     password: '',
     nameOnCc: '',
     ccNumber: '',
-    ccExpiration: null,
+    ccExpiration: '',
     ccSecurityCode: ''
   }
 ];
@@ -33,10 +32,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
       // SIMULATE server API call by wrapping in delayed observable
       return of(null)
         .pipe(mergeMap(handleRoute))
-        // call materialize and dematerialize to ensure delay even if an error is thrown
-        // https://github.com/Reactive-Extensions/RxJS/issues/648
         .pipe(materialize())
         .pipe(delay(500))
+        // https://github.com/Reactive-Extensions/RxJS/issues/648#issuecomment-88669470
         .pipe(dematerialize());
     }
 
@@ -52,25 +50,35 @@ export class FakeBackendInterceptor implements HttpInterceptor {
     }
 
     function authenticate() {
-      const { email, password } = body;
+      const email = body.email;
+      const password = body.password;
 
       const user = users.find(x => x.email === email && password);
       if (!user) return error('Email is incorrect!');
 
-      return ok({
-        id: user.id || 1,
-        email: user.email,
-        nameOnCc: user.nameOnCc || 'testuser',
-        ccNumber: user.ccNumber || '12345678',
-        ccExpiration: user.ccExpiration || moment('2019-12-31'),
-        ccSecurityCode: user.ccSecurityCode || '0000',
+      const loginUser = Object.assign({}, user, body, {
         token: 'fake-jwt-token'
       });
+
+      return ok(loginUser);
     }
 
     function getUsers() {
       if (!isLoggedIn()) return unauthorized();
+      users = fn_compose_users();
       return ok(users);
+    }
+
+    function fn_compose_users(): User[] {
+      try {
+        const authUser = localStorage.getItem('currentUser') && JSON.parse(localStorage.getItem('currentUser')) || {};
+        const result = [];
+        result.push(authUser);
+        return result;
+      } catch (e) {
+        console.log(e);
+        return users;
+      }
     }
 
     function ok(body?) {
