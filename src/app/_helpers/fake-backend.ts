@@ -26,14 +26,11 @@ export class FakeBackendInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     const { url, method, headers, body } = request;
 
-    if (
-      url.includes('api.pwnedpasswords.com/range') &&
-      method === 'GET'
-    ) {
-      // real API call
+    if (url.includes('api.pwnedpasswords.com/range') && method === 'GET') {
+      // REMOTE API call
       return next.handle(request);
     } else {
-      // simulate server API call by wrapping in delayed observable
+      // SIMULATE server API call by wrapping in delayed observable
       return of(null)
         .pipe(mergeMap(handleRoute))
         // call materialize and dematerialize to ensure delay even if an error is thrown

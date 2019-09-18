@@ -8,6 +8,8 @@ import { MDBBootstrapModule } from 'angular-bootstrap-md';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
+import { PasswordCheckerModule } from '@triangular/password-checker';
+
 // used to create fake backend
 import { fakeBackendProvider } from './_helpers';
 
@@ -26,7 +28,12 @@ import { LoginComponent } from './login';
     ReactiveFormsModule,
     HttpClientModule,
     appRoutingModule,
-    MDBBootstrapModule.forRoot()
+    MDBBootstrapModule.forRoot(),
+    PasswordCheckerModule.forRoot({
+      pwnedPasswordApiCallDebounceTime: 500,
+      pwnedPasswordMinimumOccurrenceForError: 1,
+      pwnedPasswordApi: 'https://api.pwnedpasswords.com/range/'
+    })
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
