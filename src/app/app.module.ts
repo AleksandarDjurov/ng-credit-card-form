@@ -31,7 +31,7 @@ import { LoginComponent } from './login';
     MDBBootstrapModule.forRoot(),
     PasswordCheckerModule.forRoot({
       pwnedPasswordApiCallDebounceTime: 500,
-      pwnedPasswordMinimumOccurrenceForError: 1,
+      pwnedPasswordMinimumOccurrenceForError: 4,
       pwnedPasswordApi: 'https://api.pwnedpasswords.com/range/'
     })
   ],

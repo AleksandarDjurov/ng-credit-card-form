@@ -40,6 +40,7 @@
           <input
             type="password"
             formControlName="password"
+            pwnedPasswordValidator
             class="form-control"
             [ngClass]="{ 'is-invalid': submitted && f.password.errors }"
           />
@@ -51,6 +52,28 @@
               Password must be at least 6 characters
             </div>
           </div>
+        </div>
+        <!-- .PwnedPassword alert -->
+        <div
+          *ngIf="!f.password.pending && f.password.errors && f.password.errors.pwnedPasswordOccurrence"
+          class="alert alert-warning mt-3 mb-3"
+          role="alert"
+        >
+          <h4 class="alert-heading">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true">&nbsp;</i>Caution
+          </h4>
+          <p>
+            This password has been seen
+            <span class="invalid-feedback--highlight">
+              {{ f.password.errors.pwnedPasswordOccurrence | number:'1.0-0' }}
+            </span>
+            times before
+          </p>
+          <hr>
+          <p class="mb-0">
+            This password has previously appeared in a data breach and should never be used.
+            If you've ever used it anywhere before, change it!
+          </p>
         </div>
         <!--  -->
         <div class="form-group">
@@ -132,7 +155,7 @@
         </p>
         <!--  -->
         <div *ngIf="error" class="alert alert-danger mt-3 mb-0" role="alert">
-          {{ error }}
+          <i class="fa fa-exclamation-triangle" aria-hidden="true">&nbsp;</i>{{ error }}
         </div>
       </form>
     </mdb-card-body>
