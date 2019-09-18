@@ -51,7 +51,10 @@ export class LoginComponent implements OnInit {
 
   onSubmit() {
     this.submitted = true;
-    if (this.loginForm.invalid) {
+    if (
+      (this.loginForm.invalid) ||
+      (!this.f.password.pending && this.f.password.errors && this.f.password.errors.pwnedPasswordOccurrence)
+    ) {
       return;
     }
     this.loading = true;
